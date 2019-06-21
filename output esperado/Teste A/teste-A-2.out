@@ -1,0 +1,83 @@
++ novo aeroporto PDL
++ aeroporto MAD existe
++ novo aeroporto BCN
++ novo aeroporto LECO
++ novo aeroporto CDG
++ aeroporto OPO desconhecido
++ novo aeroporto OPO
++ novo voo TP1944
++ novo voo TP1946
++ novo voo TP1971
++ novo voo TP1900
++ voo TP1900 existe
++ novo voo XV1
++ novo voo XV2
++ novo voo IB5923
++ novo voo AF1249
++ novo voo AF1449
++ aeroporto CDB desconhecido
++ novo voo AF1400
+Voo    De   Para Parte Chega
+====== ==== ==== ===== =====
+XV1    OPO  LECO 19:00 20:35
+Tempo de viagem: 455 minutos
++ voo XV1 removido
++ sem voos de OPO para LECO
++ novo voo XV1
+Voo    De   Para Parte Chega
+====== ==== ==== ===== =====
+XV1    OPO  LECO 12:00 13:35
+Tempo de viagem: 35 minutos
++ novo voo TP1867
++ novo voo TP1864
++ novo voo IB5273
+Voo    De   Para Parte Chega
+====== ==== ==== ===== =====
+TP1900 FAO  LIS  06:00 06:45
+TP1867 LIS  PDL  11:40 13:05
+Tempo de viagem: 485 minutos
+Voo    De   Para Parte Chega
+====== ==== ==== ===== =====
+TP1028 LIS  MAD  14:15 16:30
+Tempo de viagem: 90 minutos
++ voo IB5923 removido
++ novo voo IB5491
+Voo    De   Para Parte Chega
+====== ==== ==== ===== =====
+TP1864 PDL  LIS  07:00 10:10
+TP1028 LIS  MAD  14:15 16:30
+IB5273 MAD  BCN  17:00 18:20
+AF1249 BCN  CDG  20:25 22:20
+Tempo de viagem: 800 minutos
++ sem voos de CDG para PDL
+Voo    De   Para Parte Chega
+====== ==== ==== ===== =====
+AF1400 CDG  MAD  21:00 23:10
+IB5273 MAD  BCN  17:00 18:20
+Tempo de viagem: 1280 minutos
+Voo    De   Para Parte Chega
+====== ==== ==== ===== =====
+TP1900 FAO  LIS  06:00 06:45
+TP1944 LIS  OPO  10:00 10:55
+XV1    OPO  LECO 12:00 13:35
+Tempo de viagem: 395 minutos
++ novo voo IB1630
+Voo    De   Para Parte Chega
+====== ==== ==== ===== =====
+TP1028 LIS  MAD  14:15 16:30
+IB5273 MAD  BCN  17:00 18:20
+Tempo de viagem: 440 minutos
+Voo    De   Para Parte Chega
+====== ==== ==== ===== =====
+XV2    LECO OPO  06:00 05:40
+TP1971 OPO  LIS  22:00 22:55
+TP1867 LIS  PDL  11:40 13:05
+Tempo de viagem: 1985 minutos
+Voo    De   Para Parte Chega
+====== ==== ==== ===== =====
+TP1944 LIS  OPO  10:00 10:55
+Tempo de viagem: 55 minutos
+Voo    De   Para Parte Chega
+====== ==== ==== ===== =====
+TP1946 LIS  OPO  14:00 14:55
+Tempo de viagem: 55 minutos

@@ -1,0 +1,32 @@
++ novo aeroporto LIS
++ aeroporto LIS existe
++ novo aeroporto MAD
++ novo aeroporto FAO
++ aeroporto PDL desconhecido
++ aeroporto PDL desconhecido
++ aeroporto OPO desconhecido
++ novo voo IB3111
++ voo IB3111 existe
++ voo IB3111 existe
++ novo voo TP1028
++ novo voo TP1904
++ voo BA1 inexistente
++ voo IB3111 removido
++ voo IB3111 inexistente
++ aeroporto PDL desconhecido
++ aeroporto PDL desconhecido
++ aeroporto PDL desconhecido
+Voo    De   Para Parte Chega
+====== ==== ==== ===== =====
+TP1028 LIS  MAD  14:15 16:30
+Tempo de viagem: 330 minutos
+Voo    De   Para Parte Chega
+====== ==== ==== ===== =====
+TP1028 LIS  MAD  14:15 16:30
+Tempo de viagem: 75 minutos
++ sem voos de MAD para LIS
+Voo    De   Para Parte Chega
+====== ==== ==== ===== =====
+TP1904 FAO  LIS  18:05 18:50
+TP1028 LIS  MAD  14:15 16:30
+Tempo de viagem: 1290 minutos

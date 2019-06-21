@@ -1,17 +1,19 @@
 #include "graph.h"
 
+//TODO: escrita e leitura do disco
+//TODO: GMT tem que ser uma diferença, ou seja, nem sempre o GMT de partida vai ser 0
+
 
 void initialize_single_source(struct air_hash* air_hash, struct dist_list* queue,
-                              struct vertice* start_vertice, short dep_time){
+                              struct vertice* start_vertice, struct visited_list* visited){
 
     struct airport* airport1;
     struct vertice* new_vertice;
     struct dep_node* current_flight = start_vertice->edges->header;
 
     while(current_flight != NULL){
-        new_vertice = dist_list_get(queue, current_flight->dest);
 
-        if(new_vertice == NULL){ //se o vertice ainda não existe
+        if(!dist_list_exist(queue, current_flight->dest) && !visited_list_exist(visited, current_flight->dest)){ //se o vertice ainda não existe
             airport1 = air_get(air_hash, current_flight->dest);
             new_vertice = vertice_new(current_flight->dest);
             new_vertice->edges = dep_list_new();
@@ -29,7 +31,6 @@ struct path* dijkstra(struct air_hash* air_hash, struct fly_hash* fly_hash, char
 
     struct dist_list* vertice_queue = dist_list_new();  //Q
     struct visited_list* visited = visited_list_new();  //S
-    //struct dep_list* edge_list;
 
     struct dep_node* current_flight;                    //ADJ
     struct vertice* vertice1;                           //U
@@ -42,62 +43,90 @@ struct path* dijkstra(struct air_hash* air_hash, struct fly_hash* fly_hash, char
 
     //inserir o primeiro vertice
     airport1 = air_get(air_hash, start_name);
-    vertice1 = vertice_new(airport1->name);
+    vertice1 = vertice_new(start_name);
     vertice1->edges = dep_list_new();
     vertice1->edges->header = airport1->fly_list->header;
     vertice1->distance = 0;
+    initialize_single_source(air_hash, vertice_queue, vertice1, visited);
     dist_list_insert(vertice_queue, vertice1);
+
     arrival_time = dep_time;
+    time = 0;
 
     while(!dist_list_empty(vertice_queue)){
-        vertice1 = dist_list_remove(vertice_queue);
+
+        vertice1 = dist_list_remove(vertice_queue);     //remove da queue por ordem
         airport1 = air_get(air_hash, vertice1->name);
 
-        if(strcmp(vertice1->name, start_name) != 0)
+        if(strcmp(vertice1->name, start_name) != 0){     //tempo de ligação
+            time = 30;
             arrival_time =(short) (dep_time + vertice1->distance + 30 + airport1->GMT);
+        }
+
 
         if(visited_list_exist(visited, vertice1->name)) //vertice U ja´ foi visitado
             continue;
 
+        visited_list_insert(visited, vertice1); //S + {U}
 
-        initialize_single_source(air_hash, vertice_queue, vertice1, arrival_time);
+
+        initialize_single_source(air_hash, vertice_queue, vertice1, visited);
+
+
+        //ADJ (U)
         current_flight = vertice1->edges->header;
 
+        while(current_flight != NULL){ //FOR ADJ U
+            vertice2 = dist_list_get(vertice_queue, current_flight->dest); //V
 
-        while(current_flight != NULL){
-            vertice2 = dist_list_get(vertice_queue, current_flight->dest);
+            if(vertice2 == NULL){
+                current_flight = current_flight->next;
+                continue;
+            }
 
-            if(vertice2 == NULL)
-                printf("merda\n");
+            airport1 = air_get(air_hash, vertice2->name);
 
             if(arrival_time <= current_flight->dep_time){
-                time = current_flight->dep_time - arrival_time;
+                time += current_flight->dep_time - arrival_time;
                 time += current_flight->duration;
             }
 
+
+            //espera um dia
             else{
-                time = (short) (1440 - arrival_time + current_flight->dep_time);
-                time += current_flight->duration + 30;
+                time += (short) (1440 - arrival_time + current_flight->dep_time);
+                time += current_flight->duration;
             }
 
+
+            //RELAX
             if(vertice1->distance + time < vertice2->distance){
                 vertice2->distance = vertice1->distance + time;
                 strcpy(vertice2->parent, current_flight->name);
             }
 
-            dist_list_insert(vertice_queue, vertice2);
-            current_flight = current_flight->next;
-        }
 
-        visited_list_insert(visited, vertice1);
+            dist_list_insert(vertice_queue, vertice2);  //Volta a introduzir na lista uma vez que pode ter sido alterado o valor da distância
+            current_flight = current_flight->next;
+
+            if(strcmp(vertice1->name, start_name) != 0){     //tempo de ligação
+                time = 30;
+            }
+
+            else
+                time = 0;
+        }
     }
 
 
+    //constroi o caminho de volta
     struct path* final = path_new();
     struct flight* flight1;
 
+
     vertice1 = visited_list_get(visited, end_name);
-    if(vertice1 == NULL)
+
+    if(vertice1 == NULL)    //não existe caminho
         return NULL;
 
     path_insert(final, vertice1);
@@ -105,8 +134,14 @@ struct path* dijkstra(struct air_hash* air_hash, struct fly_hash* fly_hash, char
     while(vertice1->parent[0] != '\0'){
         flight1 = fly_get(fly_hash, vertice1->parent);
         vertice1 = visited_list_get(visited, flight1->air_dep);
+        if(vertice1 == NULL)
+            printf("Erro a encontrar vértice %s para construir caminho final\n", flight1->air_dep);
+
         path_insert(final, vertice1);
     }
+
+    dist_list_destroy(vertice_queue);
+    visited_list_destroy(visited);
     return final;
 }
 
@@ -141,6 +176,9 @@ int main(){
 
         if(strcmp(command, "AI") == 0){
             scanf("%s %hd:%hd", airport1, &GMT_h, &GMT_m);
+            if(GMT_h < 0)
+                GMT_m = (short) (GMT_m * -1);
+
             GMT = (short) (TIME(GMT_h, GMT_m));
 
             airport_node1 = air_get(air_hash, airport1);
@@ -158,6 +196,10 @@ int main(){
 
         else if(strcmp(command, "FI") == 0){
             scanf("%s %s %s %hd:%hd %hd", flight_code, airport1, airport2, &GMT_h, &GMT_m, &duration);
+
+            if(GMT_h < 0)
+                GMT_m = (short) (GMT_m * -1);
+
             GMT = (short) (TIME(GMT_h, GMT_m));
 
             flight_node = fly_get(fly_hash, flight_code);
@@ -191,6 +233,7 @@ int main(){
         }
 
         else if(strcmp(command, "FD") == 0){
+            memset(flight_code, '\0', FLIGHT_CODE);
             scanf("%s", flight_code);
 
             flight_node = fly_get(fly_hash, flight_code);
@@ -237,29 +280,34 @@ int main(){
                 continue;
             }
             vertice1 = path->header;
+
             if(strcmp(vertice1->name, airport1) != 0) {
                 printf("+ sem voos de %s para %s\n", airport1, airport2);
                 continue;
             }
+
             duration = 0;
             printf("Voo    De   Para Parte Chega\n");
             printf("====== ==== ==== ===== =====\n");
             while(vertice1->next != NULL){
                 vertice1 = vertice1->next;
 
+                airport_node2 = air_get(air_hash, vertice1->name);
+
                 flight_node = fly_get(fly_hash, vertice1->parent);
                 GMT = flight_node->dep_time;
                 GMT_h = (short)(GMT / 60);
                 GMT_m = (short)(GMT % 60);
-                GMT += flight_node->duration;
+                GMT += flight_node->duration + airport_node2->GMT;
                 GMT_h2 = (short)(GMT / 60);
                 GMT_m2 = (short)(GMT % 60);
 
-                printf("%s %s %s %02hd:%02hd %02hd:%02hd\n", flight_node->name, flight_node->air_dep, flight_node->air_dest, GMT_h, GMT_m, GMT_h2, GMT_m2);
+                printf("%s % 6s % 5s %02hd:%02hd %02hd:%02hd\n", flight_node->name, flight_node->air_dep, flight_node->air_dest, GMT_h, GMT_m, GMT_h2, GMT_m2);
             }
-            duration += vertice1->distance;
+            duration = vertice1->distance;
             printf("Tempo de viagem: %hd minutos\n", duration);
 
+            //path_list_destroy(path);
         }
 
         else

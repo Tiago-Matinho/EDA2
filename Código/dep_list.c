@@ -171,15 +171,16 @@ void dep_list_remove2(struct dep_list* list, char name[FLIGHT_CODE]){
         return;
 
     struct dep_node* current = list->header;
+    struct dep_node* aux;
 
     //one element list
-    if(current->next == NULL){
+    if(current->next == NULL && strcmp(current->name, name) == 0){
         free(current);
         list->header = NULL;
         return;
     }
 
-    if(strcmp(current->name, name) == 0){
+    if(strcmp(name, current->name) == 0){
         list->header = current->next;
         free(current);
         return;
@@ -187,13 +188,14 @@ void dep_list_remove2(struct dep_list* list, char name[FLIGHT_CODE]){
 
     while(current->next != NULL){
 
-        if(strcmp(current->next->name, name) == 0){
-            current->next = current->next->next;
-            free(current->next);
+        if(strcmp(name, current->next->name) == 0){
+            aux = current->next;
+            current->next = aux->next;
+            free(aux);
             return;
         }
 
-        if(strcmp(current->next->name, name) < 0)
+        if(strcmp(name, current->next->name) < 0)
             return;
 
         current = current->next;

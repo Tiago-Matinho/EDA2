@@ -5,7 +5,7 @@ struct vertice* vertice_new(char name[AIRPORT]){
 
     if(new_vertice != NULL){
         strcpy(new_vertice->name, name);
-        new_vertice->distance = 1441;
+        new_vertice->distance = 32767;
         memset(new_vertice->parent, '\0', FLIGHT_CODE);
         new_vertice->next = NULL;
         new_vertice->edges = NULL;
@@ -60,7 +60,7 @@ void dist_list_insert(struct dist_list* list, struct vertice* vertice){
     struct vertice* current = list->header;
 
     //insert on head
-    if(vertice->distance < current->distance){
+    if(current->distance > vertice->distance){
         vertice->next = current;
         list->header = vertice;
         return;
@@ -68,15 +68,14 @@ void dist_list_insert(struct dist_list* list, struct vertice* vertice){
 
     while(current->next != NULL){
 
-        if(vertice->distance < current->next->distance){
-            vertice->next = current->next;
-            current->next = vertice;
-            return;
-        }
+        if(current->next->distance > vertice->distance)
+            break;
+
 
         current = current->next;
     }
 
+    vertice->next = current->next;
     current->next = vertice;
 }
 
@@ -145,25 +144,6 @@ struct vertice* dist_list_remove(struct dist_list* list){
 }
 
 
-void dist_print(struct dist_list* list){
-    if(dist_list_empty(list)){
-        printf("Vazia.\n");
-        return;
-    }
-
-    struct vertice* current = list->header;
-
-    while(current->next != NULL){
-
-        printf("%s -> ", current->name);
-
-        current = current->next;
-    }
-
-    printf("%s\n", current->name);
-}
-
-
 /*-------------------------------------------------------------------*/
 
 bool visited_list_empty(struct visited_list* list){
@@ -181,7 +161,7 @@ void visited_list_insert(struct visited_list* list, struct vertice* vertice){
     struct vertice* current = list->header;
 
     //insert on head
-    if(strcmp(vertice->name, current->name) < 0){
+    if(strcmp(current->name, vertice->name) >= 0){
         vertice->next = current;
         list->header = vertice;
         return;
@@ -189,15 +169,13 @@ void visited_list_insert(struct visited_list* list, struct vertice* vertice){
 
     while(current->next != NULL){
 
-        if(strcmp(vertice->name, current->name) < 0){
-            vertice->next = current->next;
-            current->next = vertice;
-            return;
-        }
+        if(strcmp(current->next->name, vertice->name) >= 0)
+            break;
 
         current = current->next;
     }
 
+    vertice->next = current->next;
     current->next = vertice;
 }
 
@@ -211,11 +189,11 @@ bool visited_list_exist(struct visited_list* list, char name[AIRPORT]){
 
     while(current != NULL){
 
-        if(strcmp(name, current->name) == 0)
+        if(strcmp(current->name, name) == 0)
             return true;
 
-        if(strcmp(name, current->name) < 0)
-            break;
+        if(strcmp(current->name, name) > 0)
+            return false;
 
         current = current->next;
     }
@@ -238,6 +216,11 @@ struct vertice* visited_list_get(struct visited_list* list, char name[AIRPORT]){
         return current;
     }
 
+    if(strcmp(current->name, name) == 0){
+        list->header = current->next;
+        return current;
+    }
+
     while(current->next != NULL){
 
         if(strcmp(current->next->name, name) == 0){
@@ -247,29 +230,13 @@ struct vertice* visited_list_get(struct visited_list* list, char name[AIRPORT]){
             return aux;
         }
 
+        if(strcmp(current->next->name, name) > 0)
+            return NULL;
+
         current = current->next;
     }
 
     return NULL;
-}
-
-
-void visited_print(struct visited_list* list){
-    if(visited_list_empty(list)){
-        printf("Vazia.\n");
-        return;
-    }
-
-    struct vertice* current = list->header;
-
-    while(current->next != NULL){
-
-        printf("%s -> ", current->name);
-
-        current = current->next;
-    }
-
-    printf("%s\n", current->name);
 }
 
 
@@ -318,7 +285,7 @@ void visited_list_destroy(struct visited_list* list){
 }
 
 
-void path_destroy(struct path* list){
+void path_list_destroy(struct path* list){
     struct vertice* current = list->header;
     struct vertice* aux;
 

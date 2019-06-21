@@ -36,7 +36,6 @@ void dist_list_insert(struct dist_list* list, struct vertice* vertice);
 struct vertice* dist_list_get(struct dist_list* list, char name[AIRPORT]);
 bool dist_list_exist(struct dist_list* list, char name[AIRPORT]);
 struct vertice* dist_list_remove(struct dist_list* list);
-void dist_print(struct dist_list* list);
 
 /*-------------------------------------------------------------------*/
 
@@ -44,7 +43,6 @@ bool visited_list_empty(struct visited_list* list);
 void visited_list_insert(struct visited_list* list, struct vertice* vertice);
 bool visited_list_exist(struct visited_list* list, char name[AIRPORT]);
 struct vertice* visited_list_get(struct visited_list* list, char name[AIRPORT]);
-void visited_print(struct visited_list* list);
 
 /*-------------------------------------------------------------------*/
 

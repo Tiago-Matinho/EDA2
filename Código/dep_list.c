@@ -36,8 +36,8 @@ bool dep_list_empty(struct dep_list* list){
 
 /*-------------------------------------------------------------------*/
 
-void dep_list_insert(struct dep_list* list, struct dep_node* new_node){
 
+void dep_list_insert(struct dep_list* list, struct dep_node* new_node){
     //first insertion
     if(dep_list_empty(list)){
         list->header = new_node;
@@ -47,7 +47,7 @@ void dep_list_insert(struct dep_list* list, struct dep_node* new_node){
     struct dep_node* current = list->header;
 
     //insert on head
-    if(new_node->dep_time < current->dep_time){
+    if(strcmp(current->name, new_node->name) >= 0){
         new_node->next = current;
         list->header = new_node;
         return;
@@ -55,117 +55,18 @@ void dep_list_insert(struct dep_list* list, struct dep_node* new_node){
 
     while(current->next != NULL){
 
-        if(new_node->dep_time < current->next->dep_time){
-            new_node->next = current->next;
-            current->next = new_node;
-            return;
-        }
+        if(strcmp(current->next->name, new_node->name) >= 0)
+            break;
 
         current = current->next;
     }
 
+    new_node->next = current->next;
     current->next = new_node;
 }
 
 
 void dep_list_remove(struct dep_list* list, char name[FLIGHT_CODE]){
-    //nothing to remove
-    if(dep_list_empty(list))
-        return;
-
-    struct dep_node* current = list->header;
-
-    //one element list
-    if(current->next == NULL){
-        free(current);
-        list->header = NULL;
-        return;
-    }
-
-    while(current->next != NULL){
-
-        if(strcmp(current->next->name, name) == 0){
-            current->next = current->next->next;
-            free(current->next);
-            return;
-        }
-
-        current = current->next;
-    }
-}
-
-
-struct dep_node* dep_list_search(struct dep_list* list, char name[FLIGHT_CODE]){
-    if(dep_list_empty(list))
-        return NULL;
-
-    struct dep_node* current = list->header;
-
-    while(current->next != NULL){
-
-        if(strcmp(current->name, name) == 0)
-            return current;
-
-        current = current->next;
-    }
-    return NULL;
-}
-
-
-struct dep_node* flights_after(struct dep_list* list, short dep_time){
-    if(dep_list_empty(list))
-        return NULL;
-
-    struct dep_node* current = list->header;
-
-
-    while(current != NULL){
-
-        if(dep_time <= current->dep_time)
-            return current;
-
-        current = current->next;
-    }
-
-    return NULL;
-}
-
-
-/*-------------------------------------------------------------------*/
-
-void dep_list_insert2(struct dep_list* list, struct dep_node* new_node){
-
-    //first insertion
-    if(dep_list_empty(list)){
-        list->header = new_node;
-        return;
-    }
-
-    struct dep_node* current = list->header;
-
-    //insert on head
-    if(strcmp(new_node->dest, current->dest) < 0){
-        new_node->next = current;
-        list->header = new_node;
-        return;
-    }
-
-    while(current->next != NULL){
-
-        if(strcmp(new_node->dest, current->dest) < 0){
-            new_node->next = current->next;
-            current->next = new_node;
-            return;
-        }
-
-        current = current->next;
-    }
-
-    current->next = new_node;
-}
-
-
-void dep_list_remove2(struct dep_list* list, char name[FLIGHT_CODE]){
     //nothing to remove
     if(dep_list_empty(list))
         return;
@@ -188,14 +89,14 @@ void dep_list_remove2(struct dep_list* list, char name[FLIGHT_CODE]){
 
     while(current->next != NULL){
 
-        if(strcmp(name, current->next->name) == 0){
+        if(strcmp(current->next->name, name) == 0){
             aux = current->next;
             current->next = aux->next;
             free(aux);
             return;
         }
 
-        if(strcmp(name, current->next->name) < 0)
+        if(strcmp(current->next->name, name) > 0)
             return;
 
         current = current->next;
@@ -203,7 +104,7 @@ void dep_list_remove2(struct dep_list* list, char name[FLIGHT_CODE]){
 }
 
 
-struct dep_node* dep_list_search2(struct dep_list* list, char name[FLIGHT_CODE]){
+struct dep_node* dep_list_search(struct dep_list* list, char name[FLIGHT_CODE]){
     if(dep_list_empty(list))
         return NULL;
 

@@ -1,7 +1,7 @@
 #include "graph.h"
 
 //TODO: escrita e leitura do disco
-//TODO: GMT tem que ser uma diferença, ou seja, nem sempre o GMT de partida vai ser 0
+//TODO: GMT Continua mal. Só para o teste B
 
 
 void initialize_single_source(struct air_hash* air_hash, struct dist_list* queue,
@@ -38,6 +38,8 @@ struct path* dijkstra(struct air_hash* air_hash, struct fly_hash* fly_hash, char
 
     struct airport* airport1;
 
+    short GMT_old;
+    short GMT_dif;
     short arrival_time;
     short time;                                         //W
 
@@ -50,6 +52,7 @@ struct path* dijkstra(struct air_hash* air_hash, struct fly_hash* fly_hash, char
     initialize_single_source(air_hash, vertice_queue, vertice1, visited);
     dist_list_insert(vertice_queue, vertice1);
 
+    GMT_old = airport1->GMT;
     arrival_time = dep_time;
     time = 0;
 
@@ -60,7 +63,9 @@ struct path* dijkstra(struct air_hash* air_hash, struct fly_hash* fly_hash, char
 
         if(strcmp(vertice1->name, start_name) != 0){     //tempo de ligação
             time = 30;
-            arrival_time =(short) (dep_time + vertice1->distance + 30 + airport1->GMT);
+            GMT_dif = airport1->GMT - GMT_old;
+            //arrival_time =(short) (dep_time + vertice1->distance + 30 + airport1->GMT);
+            arrival_time =(short) (dep_time + vertice1->distance + 30 + GMT_dif);
         }
 
 
@@ -130,6 +135,7 @@ struct path* dijkstra(struct air_hash* air_hash, struct fly_hash* fly_hash, char
         return NULL;
 
     path_insert(final, vertice1);
+
 
     while(vertice1->parent[0] != '\0'){
         flight1 = fly_get(fly_hash, vertice1->parent);
@@ -227,7 +233,7 @@ int main(){
 
                 dep_list1 = airport_node1->fly_list;
                 dep_node1 = dep_node_new(flight_code, airport2, GMT, duration);
-                dep_list_insert2(dep_list1, dep_node1);
+                dep_list_insert(dep_list1, dep_node1);
                 printf("+ novo voo %s\n", flight_code);
             }
         }
@@ -245,7 +251,7 @@ int main(){
 
             airport_node1 = air_get(air_hash, flight_node->air_dep);
 
-            dep_list_remove2(airport_node1->fly_list, flight_code);
+            dep_list_remove(airport_node1->fly_list, flight_code);
             flight_node->erased = true;
             printf("+ voo %s removido\n", flight_code);
         }
@@ -292,22 +298,30 @@ int main(){
             while(vertice1->next != NULL){
                 vertice1 = vertice1->next;
 
-                airport_node2 = air_get(air_hash, vertice1->name);
-
                 flight_node = fly_get(fly_hash, vertice1->parent);
+                airport_node1 = air_get(air_hash, flight_node->air_dep);
+                airport_node2 = air_get(air_hash, flight_node->air_dest);
+
                 GMT = flight_node->dep_time;
                 GMT_h = (short)(GMT / 60);
                 GMT_m = (short)(GMT % 60);
-                GMT += flight_node->duration + airport_node2->GMT;
+
+                if(GMT_h < 0)
+                    GMT_m = (short) ((GMT * -1) / 60);
+
+                GMT += flight_node->duration + (airport_node2->GMT - airport_node1->GMT);
                 GMT_h2 = (short)(GMT / 60);
                 GMT_m2 = (short)(GMT % 60);
 
-                printf("%s % 6s % 5s %02hd:%02hd %02hd:%02hd\n", flight_node->name, flight_node->air_dep, flight_node->air_dest, GMT_h, GMT_m, GMT_h2, GMT_m2);
+                if(GMT_h2 < 0)
+                    GMT_m2 = (short) ((GMT * -1) / 60);
+
+                printf("%-6s %-4s %-4s %02hd:%02hd %02hd:%02hd\n", flight_node->name, flight_node->air_dep, flight_node->air_dest, GMT_h, GMT_m, GMT_h2, GMT_m2);
             }
             duration = vertice1->distance;
             printf("Tempo de viagem: %hd minutos\n", duration);
+            path_list_destroy(path);
 
-            //path_list_destroy(path);
         }
 
         else

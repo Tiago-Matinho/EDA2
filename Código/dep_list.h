@@ -23,11 +23,6 @@ bool dep_list_empty(struct dep_list* list);
 void dep_list_insert(struct dep_list* list, struct dep_node* new_node);
 void dep_list_remove(struct dep_list* list, char name[FLIGHT_CODE]);
 struct dep_node* dep_list_search(struct dep_list* list, char name[FLIGHT_CODE]);
-struct dep_node* flights_after(struct dep_list* list, short dep_time);
-
-void dep_list_insert2(struct dep_list* list, struct dep_node* new_node);
-void dep_list_remove2(struct dep_list* list, char name[FLIGHT_CODE]);
-struct dep_node* dep_list_search2(struct dep_list* list, char name[FLIGHT_CODE]);
 
 
 void dep_list_read();

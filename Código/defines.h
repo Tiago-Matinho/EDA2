@@ -6,11 +6,11 @@
 #define AIRPORT 5
 
 #define TIME(H, M) (H * 60 + M)
-#define TO_GMT_H (S) (S / 60)
-#define TO_GMT_M (M) (M % 60)
+//#define TO_GMT_H (S) (S / 60)
+//#define TO_GMT_M (M) (M % 60)
 
-#define MAX_AIRPORT 10
-#define MAX_FLIGHT 20
+#define MAX_AIRPORT 200003
+#define MAX_FLIGHT  750003
 
 //Retirado da implementac~ao de Tries das aulas praticas
 #define ALPHABET_MIN 'A'
@@ -19,3 +19,4 @@
 #define POS(c)  ((c) - ALPHABET_MIN)
 #define CHAR(n) ((n) + ALPHABET_MIN)
 #define NUM(c) (c - '0')
+

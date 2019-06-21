@@ -32,19 +32,37 @@ struct fly_hash* fly_hash_new(){
 int fly_hashcode(char name[FLIGHT_CODE]){
     int key;
 
-    key = POS(name[0])  * ALPHABET_SIZE* 10000;
-    key += POS(name[1]) * 10000;
-    key += 1000 * NUM(name[2]);
-    key += 100 * NUM(name[3]);
-    key += 10 * NUM(name[4]);
-    key += NUM(name[5]);
+    key = POS(name[0]) * ALPHABET_SIZE * 9999;
+    key += POS(name[1]) * 9999;
 
-    return key % MAX_FLIGHT;
+    if(name[3] == '\0'){
+        key += NUM(name[2]);
+        return key;
+    }
+
+    if(name[4] == '\0'){
+        key += NUM(name[2]) * 10;
+        key += NUM(name[3]);
+        return key;
+    }
+
+    if(name[5] == '\0'){
+        key += NUM(name[2]) * 100;
+        key += NUM(name[3]) * 10;
+        key += NUM(name[4]);
+        return key;
+    }
+
+    key += NUM(name[2]) * 1000;
+    key += NUM(name[3]) * 100;
+    key += NUM(name[4]) * 10;
+    key += NUM(name[5]);
+    return key;
 }
 
 
 void fly_insert(struct fly_hash* hashtable, struct flight* new_flight){
-    int key = fly_hashcode(new_flight->name);
+    int key = fly_hashcode(new_flight->name) % MAX_FLIGHT;
 
     while(hashtable->table[key] != NULL){
         key++;
@@ -56,10 +74,10 @@ void fly_insert(struct fly_hash* hashtable, struct flight* new_flight){
 
 
 int fly_search(struct fly_hash* hashtable, char name[FLIGHT_CODE]){
-    int key = fly_hashcode(name);
+    int key = fly_hashcode(name) % MAX_FLIGHT;
 
     while(hashtable->table[key] != NULL){
-        if(strcmp(hashtable->table[key]->name, name) == 0)
+        if(strcmp(hashtable->table[key]->name, name) == 0 && !hashtable->table[key]->erased)
             return key;
 
         key++;
@@ -71,7 +89,7 @@ int fly_search(struct fly_hash* hashtable, char name[FLIGHT_CODE]){
 
 
 struct flight* fly_get(struct fly_hash* hashtable, char name[FLIGHT_CODE]){
-    int key = fly_search(hashtable, name);
+    int key = fly_search(hashtable, name) % MAX_FLIGHT;
 
     if(key == -1)
         return NULL;

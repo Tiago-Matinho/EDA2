@@ -39,18 +39,18 @@ int air_hashcode(char name[AIRPORT]){
         key += POS(name[2]);
     }
     else{
-        key = POS(name[0]) * ALPHABET_SIZE * ALPHABET_SIZE * ALPHABET_SIZE;
+        key = POS(name[0] + 1) * ALPHABET_SIZE * ALPHABET_SIZE * ALPHABET_SIZE;
         key += POS(name[1]) * ALPHABET_SIZE * ALPHABET_SIZE;
         key += POS(name[2]) * ALPHABET_SIZE;
         key += POS(name[3]);
     }
 
-    return key % MAX_AIRPORT;
+    return key;
 }
 
 
 void air_insert(struct air_hash* hashtable, struct airport* air_new){
-    int key = air_hashcode(air_new->name);
+    int key = air_hashcode(air_new->name) % MAX_AIRPORT;
 
     while(hashtable->table[key] != NULL){
         key++;
@@ -62,7 +62,7 @@ void air_insert(struct air_hash* hashtable, struct airport* air_new){
 
 
 int air_search(struct air_hash* hashtable, char name[AIRPORT]){
-    int key = air_hashcode(name);
+    int key = air_hashcode(name) % MAX_AIRPORT;
 
     while(hashtable->table[key] != NULL){
         if(strcmp(hashtable->table[key]->name, name) == 0)
@@ -77,7 +77,7 @@ int air_search(struct air_hash* hashtable, char name[AIRPORT]){
 
 
 struct airport* air_get(struct air_hash* hashtable, char name[AIRPORT]){
-    int key = air_search(hashtable, name);
+    int key = air_search(hashtable, name) % MAX_AIRPORT;
 
     if(key == -1)
         return NULL;

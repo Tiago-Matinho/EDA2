@@ -4,7 +4,7 @@
 //TODO: GMT Continua mal. Só para o teste B
 
 FILE* open_air_file(FILE* air_file){
-    air_file = fopen(AIR_FILENAME, "r+");
+    //air_file = fopen(AIR_FILENAME, "r+");
 
     if(air_file == NULL){
         air_file = fopen(AIR_FILENAME, "w+");
@@ -13,18 +13,20 @@ FILE* open_air_file(FILE* air_file){
             printf("ERRO A CRIAR FICHEIRO ESCRITA. AIR_HASH.\n");
             exit(1);
         }
+        /*
         char blank_name[AIRPORT];
         memset(blank_name, '\0', AIRPORT);
         struct airport* blank = airport_new(blank_name, 0);
         for(int i = 0; i < MAX_AIRPORT; i++){
             fwrite(blank, sizeof(*blank), 1, air_file);
         }
+         */
     }
     return air_file;
 }
 
 FILE* open_fly_file(FILE* fly_file){
-    fly_file = fopen(FLY_FILENAME, "r+");
+    //fly_file = fopen(FLY_FILENAME, "r+");
 
     if(fly_file == NULL){
         fly_file = fopen(FLY_FILENAME, "w+");
@@ -33,6 +35,7 @@ FILE* open_fly_file(FILE* fly_file){
             printf("ERRO A CRIAR FICHEIRO ESCRITA. FLY_HASH.\n");
             exit(1);
         }
+        /*
         char blank_name[FLIGHT_CODE];
         char blank_name2[AIRPORT];
         memset(blank_name, '\0', FLIGHT_CODE);
@@ -41,12 +44,13 @@ FILE* open_fly_file(FILE* fly_file){
         for(int i = 0; i < MAX_FLIGHT; i++){
             fwrite(blank, sizeof(*blank), 1, fly_file);
         }
+         */
     }
     return fly_file;
 }
 
 FILE* open_flight_file(FILE* flight_list_file){
-    flight_list_file = fopen(FLY_LIST_FILENAME, "r+");
+    //flight_list_file = fopen(FLY_LIST_FILENAME, "r+");
 
     if(flight_list_file == NULL){
         flight_list_file = fopen(FLY_LIST_FILENAME, "w+");
@@ -110,9 +114,10 @@ struct path* dijkstra(struct air_hash* air_hash, struct fly_hash* fly_hash,
     struct vertice* vertice2;                           //V
 
     struct airport* airport1;
+    struct airport* airport2;
+    struct flight* flight;
 
-    short GMT_old;
-    short GMT_dif;
+
     short arrival_time;
     short time;                                         //W
 
@@ -126,21 +131,30 @@ struct path* dijkstra(struct air_hash* air_hash, struct fly_hash* fly_hash,
     initialize_single_source(air_hash, vertice_queue, vertice1,
                              visited, air_file, flight_list_file);
 
-    GMT_old = airport1->GMT;
-    arrival_time = dep_time;
-    time = 0;
 
     while(!dist_list_empty(vertice_queue)){
 
         vertice1 = dist_list_remove(vertice_queue);     //remove da queue por ordem
         airport1 = air_get(air_hash, vertice1->name);
 
-        if(strcmp(vertice1->name, start_name) != 0){     //tempo de ligação
-            time = 30;
-            GMT_dif = GMT_old + airport1->GMT;
-            //arrival_time =(short) (dep_time + vertice1->distance + 30 + airport1->GMT);
-            arrival_time =(short) (dep_time + vertice1->distance + 30 + GMT_dif);
+
+
+        if(strcmp(vertice1->name, start_name) == 0)
+            arrival_time = dep_time;
+
+
+            //tempo de ligação
+        else{
+            flight = fly_get(fly_hash, vertice1->parent);
+            airport2 = air_get(air_hash, flight->air_dest);
+            arrival_time = (short) (dep_time + vertice1->distance + 30 + airport2->GMT - airport1->GMT);//falta aqui o GMT
         }
+
+
+        //esperar um dia?
+        if(arrival_time < 0)
+            arrival_time = (short) (arrival_time - 1440);
+
 
 
         if(visited_list_exist(visited, vertice1->name)) //vertice U ja´ foi visitado
@@ -164,7 +178,13 @@ struct path* dijkstra(struct air_hash* air_hash, struct fly_hash* fly_hash,
                 continue;
             }
 
-            airport1 = air_get(air_hash, vertice2->name);
+
+            if(strcmp(vertice1->name, start_name) == 0)
+                time = 0;
+
+
+            else   //tempo de ligação
+                time = 30;
 
             if(arrival_time <= current_flight->dep_time){
                 time += current_flight->dep_time - arrival_time;
@@ -188,13 +208,6 @@ struct path* dijkstra(struct air_hash* air_hash, struct fly_hash* fly_hash,
 
             dist_list_insert(vertice_queue, vertice2);  //Volta a introduzir na lista uma vez que pode ter sido alterado o valor da distância
             current_flight = current_flight->next;
-
-            if(strcmp(vertice1->name, start_name) != 0){     //tempo de ligação
-                time = 30;
-            }
-
-            else
-                time = 0;
         }
     }
 
@@ -233,10 +246,12 @@ struct path* dijkstra(struct air_hash* air_hash, struct fly_hash* fly_hash,
 
 
 int main(){
-
-    FILE* air_file = open_air_file(air_file);
-    FILE* fly_file = open_fly_file(fly_file);
-    FILE* flight_list_file = open_flight_file(flight_list_file);
+    FILE* air_file = NULL;
+    FILE* fly_file = NULL;
+    FILE* flight_list_file = NULL;
+    air_file = open_air_file(air_file);
+    fly_file = open_fly_file(fly_file);
+    flight_list_file = open_flight_file(flight_list_file);
 
     bool flag = true;
 

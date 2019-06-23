@@ -1,7 +1,6 @@
 #include "graph.h"
 
-//TODO: escrita e leitura do disco
-//TODO: GMT Continua mal. Só para o teste B
+//TODO: Fazer um heap para reduzir o tempo do dijkstra
 
 FILE* open_air_file(FILE* air_file){
     air_file = fopen(AIR_FILENAME, "r+");

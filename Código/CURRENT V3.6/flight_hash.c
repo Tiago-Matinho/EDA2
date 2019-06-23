@@ -84,7 +84,7 @@ int fly_search(struct fly_hash* hashtable, char name[FLIGHT_CODE]){
     int key = fly_hashcode(name) % MAX_FLIGHT;
 
     while(hashtable->table[key] != NULL){
-        if(strcmp(hashtable->table[key]->name, name) == 0 && !hashtable->table[key]->erased)
+        if(strcmp(hashtable->table[key]->name, name) == 0)
             return key;
 
         key++;
@@ -101,9 +101,6 @@ struct flight* fly_get(struct fly_hash* hashtable, char name[FLIGHT_CODE]){
     if(key == -1)
         return NULL;
 
-    if(hashtable->table[key]->erased)
-        return NULL;
-
     return hashtable->table[key];
 }
 
@@ -114,6 +111,11 @@ void fly_read(FILE* fly_file, struct fly_hash* fly_hash, char flight[FLIGHT_CODE
         printf("ERRO A LER FLY_HASH\n");
         exit(1);
     }
+
+    int teste = fly_search(fly_hash, flight);
+
+    if(teste != -1)
+        return;
 
     int key = fly_hashcode(flight);
     fseek(fly_file, key * sizeof(struct flight), SEEK_SET);
@@ -139,6 +141,11 @@ void fly_write(FILE* fly_file, struct fly_hash* fly_hash){
 
     int key;
     struct flight* current_flight;
+    char blank_name[FLIGHT_CODE];
+    char blank_airport[AIRPORT];
+    memset(blank_name, '\0', FLIGHT_CODE);
+    memset(blank_airport, '\0', AIRPORT);
+    struct flight* blank = flight_new(blank_name, blank_airport, blank_airport, 0, 0);
 
     for(int i = 0; i < MAX_FLIGHT; ++i){
         current_flight = fly_hash->table[i];
@@ -150,8 +157,15 @@ void fly_write(FILE* fly_file, struct fly_hash* fly_hash){
 
                 key = fly_hashcode(current_flight->name);
 
-                fseek(fly_file, key * sizeof(struct flight), SEEK_SET);
-                fwrite(current_flight, sizeof(*current_flight), 1, fly_file);
+                if(!current_flight->erased){
+                    fseek(fly_file, key * sizeof(struct flight), SEEK_SET);
+                    fwrite(current_flight, sizeof(*current_flight), 1, fly_file);
+                }
+                    //escreve a branco
+                else{
+                    fseek(fly_file, key * sizeof(struct flight), SEEK_SET);
+                    fwrite(blank, sizeof(*blank), 1, fly_file);
+                }
             }
             free(current_flight);
         }

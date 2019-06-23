@@ -154,6 +154,8 @@ void dep_list_read(FILE* flight_list_file, FILE* fly_file, struct fly_hash* fly_
     aux = current;
     list->header = aux;
 
+    fly_read(fly_file, fly_hash, aux->name);
+
     for(int i = 1; i < 150; i++){
         current = malloc(sizeof(struct dep_node));
         fread(current, sizeof(*current), 1, flight_list_file);

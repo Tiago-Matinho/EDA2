@@ -111,7 +111,6 @@ void air_read(FILE* air_file, FILE* flight_list_file, FILE* fly_file, struct fly
 
     new_airport->fly_list = dep_list_new();
     dep_list_read(flight_list_file, fly_file, fly_hash, new_airport->fly_list, key);
-
     air_insert(air_hash, new_airport);
 }
 

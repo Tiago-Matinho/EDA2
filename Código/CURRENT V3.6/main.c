@@ -86,11 +86,6 @@ void initialize_single_source(struct air_hash* air_hash, struct fly_hash* fly_ha
 
         flight1 = fly_get(fly_hash, current_flight->name);
 
-        if(flight1 == NULL){
-            fly_read(fly_file, fly_hash, current_flight->name);
-            flight1 = fly_get(fly_hash, current_flight->name);
-        }
-
         //caso o ve'rtice n~ao exista
         if(!dist_list_exist(queue, flight1->dest) && !visited_list_exist(visited, flight1->dest)){
             //procura na RAM
@@ -311,6 +306,7 @@ int main(){
 
     int total;
 
+    char teste[FLIGHT_CODE] = "ND564\0";
 
     while(flag){
         scanf("%s", command);
@@ -361,8 +357,10 @@ int main(){
             }
 
             if(flight_node != NULL){
-                printf("+ voo %s existe\n", flight_code);
-                continue;
+                if(!flight_node->erased){
+                    printf("+ voo %s existe\n", flight_code);
+                    continue;
+                }
             }
 
             //procura o primeiro aeroporto em RAM
@@ -408,8 +406,18 @@ int main(){
         else if(strcmp(command, "FD") == 0){
             scanf("%s", flight_code);
 
+            if(strcmp(flight_code, teste) == 0)
+                printf("teste\n");
+
             //procura em RAM
             flight_node = fly_get(fly_hash, flight_code);
+
+            if(flight_node != NULL){
+                if(flight_node->erased){
+                    printf("+ voo %s inexistente\n", flight_code);
+                    continue;
+                }
+            }
 
             //procura em Disco e insere em RAM caso exista
             if(flight_node == NULL){

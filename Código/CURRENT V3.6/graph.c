@@ -6,7 +6,7 @@ struct vertice* vertice_new(char name[AIRPORT]){
     if(new_vertice != NULL){
         memset(new_vertice->name, '\0', AIRPORT);
         strcpy(new_vertice->name, name);
-        new_vertice->distance = 32767;
+        new_vertice->distance = 4294967295;
         memset(new_vertice->parent, '\0', FLIGHT_CODE);
         new_vertice->next = NULL;
         new_vertice->edges = NULL;

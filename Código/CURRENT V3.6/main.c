@@ -81,6 +81,7 @@ void initialize_single_source(struct air_hash* air_hash, struct fly_hash* fly_ha
     struct flight* flight1;
     struct dep_node* current_flight = start_vertice->edges->header;
 
+
     while(current_flight != NULL){
 
         flight1 = fly_get(fly_hash, current_flight->name);
@@ -129,9 +130,9 @@ struct path* dijkstra(struct air_hash* air_hash, struct fly_hash* fly_hash,
     struct airport* airport2;
     struct flight* flight1;
 
-    short GMT_dif;
-    short arrival_time;
-    short time;                                         //W
+    int GMT_dif;
+    int arrival_time;
+    int time;                                         //W
 
 
     //inserir o primeiro vertice
@@ -152,10 +153,9 @@ struct path* dijkstra(struct air_hash* air_hash, struct fly_hash* fly_hash,
 
         vertice1 = dist_list_remove(vertice_queue);     //remove da queue por ordem
 
+
         if(visited_list_exist(visited, vertice1->name)) //vertice U ja´ foi visitado
             continue;
-
-        airport1 = air_get(air_hash, vertice1->name);
 
 
         visited_list_insert(visited, vertice1); //S + {U}
@@ -179,9 +179,11 @@ struct path* dijkstra(struct air_hash* air_hash, struct fly_hash* fly_hash,
 
 
         //acerto de hora
-        if(arrival_time < 0 || arrival_time > 1440)
+        if(arrival_time > 1440)
             arrival_time = (short) (arrival_time % 1440);
 
+        if(arrival_time < 0)
+            arrival_time = (short) (1440 + arrival_time);
 
         //inicialia-se os ve'rtices ligados a U
         initialize_single_source(air_hash, fly_hash, vertice_queue, vertice1, visited,
@@ -195,6 +197,7 @@ struct path* dijkstra(struct air_hash* air_hash, struct fly_hash* fly_hash,
             flight1 = fly_get(fly_hash, current_flight->name);
 
             vertice2 = dist_list_get(vertice_queue, flight1->dest); //V
+
 
 
             if(vertice2 == NULL){   //caso V j'a tenha sido visitado
@@ -225,6 +228,7 @@ struct path* dijkstra(struct air_hash* air_hash, struct fly_hash* fly_hash,
             }
 
 
+
             //RELAX
             if(vertice1->distance + time < vertice2->distance){
                 vertice2->distance = vertice1->distance + time;
@@ -235,6 +239,9 @@ struct path* dijkstra(struct air_hash* air_hash, struct fly_hash* fly_hash,
             dist_list_insert(vertice_queue, vertice2);
             current_flight = current_flight->next;
         }
+
+        if(strcmp(vertice1->name, end_name) == 0)
+            break;
     }
 
 
@@ -301,6 +308,8 @@ int main(){
     short GMT_h, GMT_m, GMT, duration;
     short GMT_h2, GMT_m2;
     short GMT_dif;
+
+    int total;
 
 
     while(flag){
@@ -521,8 +530,8 @@ int main(){
 
                 printf("%-6s %-4s %-4s %02hd:%02hd %02hd:%02hd\n", flight_node->name, flight_node->dep, flight_node->dest, GMT_h, GMT_m, GMT_h2, GMT_m2);
             }
-            duration = vertice1->distance;
-            printf("Tempo de viagem: %hd minutos\n", duration);
+            total = vertice1->distance;
+            printf("Tempo de viagem: %d minutos\n", total);
             path_list_destroy(path);
 
         }

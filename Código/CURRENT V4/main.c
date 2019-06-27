@@ -69,7 +69,7 @@ void add_flight(struct air_hash* air_hash, struct fly_hash* fly_hash, struct fli
         return;
     }
 
-    int key = air_hashcode(new->dep);
+    int key = air_search_index(air_hash, new->dep);
 
     struct list_node* node = list_node_new(new);
     flight_list_insert(air_hash->flights[key], node);
@@ -89,7 +89,9 @@ void remove_flight(struct air_hash* air_hash, struct fly_hash* fly_hash, char fl
 
     int key = air_search_index(air_hash, fligth->dep);
     flight_list_remove(air_hash->flights[key], flight_name);
+    int key2 = fly_search_index(fly_hash, flight_name);
     free(fligth);
+    fly_hash->table[key2] = NULL;
     printf("+ voo %s removido\n", flight_name);
 
 }
@@ -99,27 +101,25 @@ void initialize_single_source(struct air_hash* air_hash, struct heap* heap, char
 
     struct vertice* new_vertice;
     struct airport* airport;
-    int pos = 0;
 
     for(int i = 0; i < MAX_AIR_HASH; i++){
         airport = air_hash->table[i];
 
         if(airport != NULL){
+            airport->pos = -1;
             new_vertice = vertice_new(airport->code);
             min_heap_insert(air_hash, heap, new_vertice);
-            airport->pos = pos;
-            pos++;
         }
     }
 
     airport = air_search(air_hash, start);
     new_vertice = heap->array[airport->pos];
     new_vertice->distance = 0;
-    heap_decrease_key(air_hash, heap, airport->pos,new_vertice);
+    min_heapify(air_hash, heap, airport->pos);
 }
 
 
-void dijktra(struct air_hash* air_hash, struct fly_hash* fly_hash, struct heap* queue, short dep_time, char start[AIRPORT], char end[AIRPORT]){
+struct vertice* dijktra(struct air_hash* air_hash, struct fly_hash* fly_hash, struct heap* queue, short dep_time, char start[AIRPORT], char end[AIRPORT]){
 
     struct list_node* current_flight;                   //ADJ
     struct vertice* vertice1;                           //U
@@ -144,10 +144,6 @@ void dijktra(struct air_hash* air_hash, struct fly_hash* fly_hash, struct heap* 
         vertice1 = heap_extract_min(air_hash, queue);     //remove da queue por ordem
 
 
-        if(vertice1->visited) //vertice U ja´ foi visitado
-            continue;
-
-
         if(strcmp(vertice1->name, start) == 0)
             arrival_time = dep_time;
 
@@ -158,7 +154,6 @@ void dijktra(struct air_hash* air_hash, struct fly_hash* fly_hash, struct heap* 
             if(vertice1->parent == NULL)
                 continue;
 
-            flight1 = fly_search(fly_hash, vertice1->flight);
             airport2 = air_search(air_hash, vertice1->parent->name);
             GMT_dif = airport2->GMT - GMT_inicial;
             arrival_time = (dep_time + vertice1->distance + (GMT_dif)); //Pode estar errado
@@ -167,10 +162,10 @@ void dijktra(struct air_hash* air_hash, struct fly_hash* fly_hash, struct heap* 
 
         //acerto de hora
         if(arrival_time < 0)
-            arrival_time = (short) (MIN_IN_H + arrival_time);
+            arrival_time = (short) (MIN_IN_DAY + arrival_time);
 
-        if(arrival_time > MIN_IN_H)
-            arrival_time = (short) (arrival_time % MIN_IN_H);
+        if(arrival_time > MIN_IN_DAY)
+            arrival_time = (short) (arrival_time % MIN_IN_DAY);
 
 
 
@@ -209,7 +204,7 @@ void dijktra(struct air_hash* air_hash, struct fly_hash* fly_hash, struct heap* 
 
                 //espera um dia
             else{
-                time = (short) (1440 - arrival_time + flight1->dep_time);
+                time = (short) (MIN_IN_DAY - arrival_time + flight1->dep_time);
                 time += flight1->duration;
             }
 
@@ -220,7 +215,7 @@ void dijktra(struct air_hash* air_hash, struct fly_hash* fly_hash, struct heap* 
                 vertice2->distance = vertice1->distance + time;
                 vertice2->parent = vertice1;
                 strcpy(vertice2->flight, flight1->name);
-                heap_decrease_key(air_hash, queue, airport2->pos, vertice2);
+                min_heapify(air_hash, queue, airport2->pos);
             }
 
                 //Volta a introduzir na queue uma vez que pode n~ao ter sido alterado o valor da dist^ancia
@@ -229,13 +224,62 @@ void dijktra(struct air_hash* air_hash, struct fly_hash* fly_hash, struct heap* 
             current_flight = current_flight->next;
         }
 
-        vertice1->visited = true; //S + {U}
-
+        queue->visited[queue->visited_size] = vertice1;
+        airport1->pos = queue->visited_size;
+        queue->visited_size++;
 
         if(strcmp(vertice1->name, end) == 0)
-            break;
+            return vertice1;
     }
 
+    return NULL;
+}
+
+
+void build_path(struct air_hash* air_hash, struct fly_hash* fly_hash, struct vertice* current, struct airport* airport1, struct flight* flight1){
+    if(current->parent == NULL){
+        struct airport* airport2 = air_search(air_hash, current->name);
+
+        short GMT_dif = airport2->GMT - airport1->GMT;
+        short dep_time = flight1->dep_time;
+
+        if(GMT_dif > 0 && GMT_dif < MIN_IN_DAY)
+            GMT_dif %= MIN_IN_DAY;
+
+        short arri_h = (short)(TO_GMT_H(dep_time));
+        short arri_m = (short)(TO_GMT_M(dep_time));
+
+
+        if(GMT_dif > 0 && GMT_dif < MIN_IN_DAY)
+            GMT_dif %= MIN_IN_DAY;
+
+
+        dep_time += flight1->duration + (GMT_dif);
+
+        if(dep_time > MIN_IN_DAY)
+            dep_time = (short) (dep_time % MIN_IN_DAY);
+
+        if(dep_time < 0)
+            dep_time = (short) ((MIN_IN_DAY + dep_time) % MIN_IN_DAY);
+
+
+        if(dep_time > MIN_IN_DAY)
+            dep_time = (short) (dep_time % MIN_IN_DAY);
+
+        if(dep_time < 0)
+            dep_time = (short) ((MIN_IN_DAY + dep_time) % MIN_IN_DAY);
+
+        short arri_h2 = (short)(TO_GMT_H(dep_time));
+        short arri_m2 = (short)(TO_GMT_M(dep_time));
+
+        printf("%-6s %-4s %-4s %02hd:%02hd %02hd:%02hd\n", flight1->name, flight1->dep, flight1->dest, arri_h, arri_m, arri_h2, arri_m2);
+        free(current);
+        return;
+    }
+
+    struct flight* flight2 = fly_search(fly_hash, current->flight);
+    struct airport* airport2 = air_search(air_hash, current->name);
+    build_path(air_hash, fly_hash, current->parent, airport2, flight2);
 }
 
 
@@ -250,9 +294,25 @@ void TR(struct air_hash* air_hash, struct fly_hash* fly_hash, short dep_time, ch
         return;
     }
 
-    struct heap*
-    dijktra(air_hash, fly_hash, dep_time, start, end);
+    struct heap* queue = heap_new();
+    struct vertice* end_vertice;
 
+    end_vertice = dijktra(air_hash, fly_hash, queue, dep_time, start, end);
+
+
+    if(end_vertice == NULL){
+        //no path
+        return;
+    }
+
+    struct airport* airport1 = air_search(air_hash, end_vertice->name);
+    struct flight* flight1 = fly_search(fly_hash, end_vertice->flight);
+
+    printf("Voo    De   Para Parte Chega\n");
+    printf("====== ==== ==== ===== =====\n");
+    build_path(air_hash, fly_hash, end_vertice, airport1, flight1);
+    printf("Tempo de viagem: %d minutos\n", end_vertice->distance);
+    min_heap_destroy(queue);
 }
 
 int main(){
@@ -317,7 +377,7 @@ int main(){
         else if(strcmp(command, "TR") == 0){
             scanf("%s %s %hd:%hd", airport_name1, airport_name2, &GMT_h, &GMT_m);
             GMT = (short) TIME(GMT_h, GMT_m);
-
+            TR(air_hash, fly_hash, GMT, airport_name1, airport_name2);
         }
 
         else

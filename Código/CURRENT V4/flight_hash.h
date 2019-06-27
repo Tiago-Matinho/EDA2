@@ -19,6 +19,7 @@ struct fly_hash* fly_hash_new();
 int fly_hashcode(char name[FLIGHT_CODE]);
 void fly_insert(struct fly_hash* hashtable, struct flight* new_flight);
 struct flight* fly_search(struct fly_hash* hashtable, char name[FLIGHT_CODE]);
+int fly_search_index(struct fly_hash* hashtable, char name[FLIGHT_CODE]);
 
 
 

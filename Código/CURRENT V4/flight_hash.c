@@ -108,7 +108,26 @@ struct flight* fly_search(struct fly_hash* hashtable, char name[FLIGHT_CODE]){
     return NULL;
 }
 
+int fly_search_index(struct fly_hash* hashtable, char name[FLIGHT_CODE]){
+    int key = fly_hashcode(name);
 
+    if(key < 0){
+        printf("ERRO NO HASHING DE VOOS\n");
+        exit(1);
+    }
+
+    key %= MAX_FLIGHT_HASH;
+
+    while(hashtable->table[key] != NULL){
+        if(strcmp(hashtable->table[key]->name, name) == 0)
+            return key;
+
+        key++;
+        key %= MAX_FLIGHT_HASH;
+    }
+
+    return -1;
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -123,8 +142,9 @@ void fly_read(FILE* fly_fp, struct fly_hash* hashtable, struct air_hash* air_has
     struct list_node* node;
     struct flight* new_flight;
     int key;
+    fseek(fly_fp, 0, SEEK_SET);
 
-    for(int i = 0; i < MAX_FLIGHT_HASH; ++i){
+    for(int i = 0; i < MAX_FLIGHT; ++i){
         new_flight = malloc(sizeof(struct flight));
 
         if(new_flight == NULL){
@@ -144,7 +164,7 @@ void fly_read(FILE* fly_fp, struct fly_hash* hashtable, struct air_hash* air_has
             return;
         }
 
-        key = air_hashcode(new_flight->dep);
+        key = air_search_index(air_hash, new_flight->dep);
 
         if(key < 0){
             printf("ERRO NO HASHING DE AEROPORTOS\n");
@@ -178,6 +198,8 @@ void fly_write(FILE* fly_fp, struct fly_hash* hashtable){
     blank->duration = 0;
     blank->dep_time = 0;
 
+
+    fseek(fly_fp, 0, SEEK_SET);
 
     for(int i = 0; i < MAX_FLIGHT_HASH; ++i){
         current = hashtable->table[i];

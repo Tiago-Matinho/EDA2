@@ -19,10 +19,12 @@ struct heap* heap_new(){
     struct heap* new = malloc(sizeof(struct heap));
 
     if(new != NULL){
-        for(int i = 0; i < MAX_AIRPORT; ++i){
+        for(int i = 0; i < HEAP_SIZE; ++i){
             new->array[i] = NULL;
+            new->visited[i] = NULL;
         }
         new->size = 0;
+        new->visited_size = 0;
     }
 
     return new;
@@ -81,7 +83,9 @@ struct vertice* heap_extract_min(struct air_hash* hashtable, struct heap* heap){
         return NULL;
 
     struct vertice* min = heap->array[1];
+    struct vertice* temp = heap->array[heap->size];
     heap->array[1] = heap->array[heap->size];
+    air_search(hashtable, temp->name)->pos = 1;
     heap->size--;
     min_heapify(hashtable, heap, 1);
     return min;
@@ -91,6 +95,7 @@ struct vertice* heap_extract_min(struct air_hash* hashtable, struct heap* heap){
 void heap_decrease_key(struct air_hash* hashtable, struct heap* heap, int i, struct vertice* key){
 
     heap->array[i] = key;
+    air_search(hashtable, key->name)->pos = i;
 
     while(i > 1 &&
           heap->array[PARENT(i)]->distance > heap->array[i]->distance){
@@ -102,24 +107,14 @@ void heap_decrease_key(struct air_hash* hashtable, struct heap* heap, int i, str
 
 
 void min_heap_insert(struct air_hash* hashtable, struct heap* heap, struct vertice* key){
-    if(heap->size == 0){
+    if(heap->size == 1){
         heap->size++;
         heap->array[heap->size] = key;
+        air_search(hashtable, key->name)->pos = heap->size;
         return;
     }
     heap->size++;
     heap_decrease_key(hashtable, heap, heap->size, key);
-}
-
-
-bool min_change_value(struct air_hash* hashtable, struct heap* heap, int i, int new_value){
-    if(i >= 0 && i <= heap->size){
-        struct vertice* vertice1 = heap->array[i];
-        vertice1->distance = new_value;
-        heap_decrease_key(hashtable, heap, i, vertice1);
-        return true;
-    }
-    return false;
 }
 
 
@@ -132,5 +127,9 @@ void min_heap_destroy(struct heap* heap){
     for(int i = 0; i < HEAP_SIZE; i++){
         if(heap->array[i] != NULL)
             free(heap->array[i]);
+        if(heap->visited[i] != NULL)
+            free(heap->visited[i]);
     }
+
+    free(heap);
 }

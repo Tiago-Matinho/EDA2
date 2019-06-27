@@ -14,16 +14,19 @@
 #define COMMAND_MAX 3
 #define AIRPORT 5
 #define MAX_AIRPORT 200000
-#define MAX_AIR_HASH (240000 + 3)
+//#define MAX_AIR_HASH (240000 + 3)
+#define MAX_AIR_HASH (10)
 #define MAX_AIRPORT_TOTAL (ALPHABET_SIZE*ALPHABET_SIZE*ALPHABET_SIZE*ALPHABET_SIZE)
 #define AIR_FILENAME "air_hash.bin"
 
 #define FLIGHT_CODE 7
 #define MAX_FLIGHT 750000
-#define MAX_FLIGHT_HASH (MAX_FLIGHT + 150003)
+//#define MAX_FLIGHT_HASH (MAX_FLIGHT + 150003)
+#define MAX_FLIGHT_HASH (10)
 #define FLY_FILENAME "flight_hash.bin"
 
-#define HEAP_SIZE (MAX_AIRPORT + 1)
+//#define HEAP_SIZE (MAX_AIRPORT + 1)
+#define HEAP_SIZE (5 + 1)
 #define PARENT(i) ((i) / 2)
 #define LEFT(i) (2 * (i))
 #define RIGHT(i) (2 * (i) + 1)

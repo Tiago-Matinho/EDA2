@@ -124,6 +124,8 @@ void air_read(FILE* air_fp, struct air_hash* air_hash){
 
     struct airport* new_airport;
 
+    fseek(air_fp, 0, SEEK_SET);
+
     for(int i = 0; i < MAX_AIRPORT; i++){
         new_airport = malloc(sizeof(struct airport));
 
@@ -157,6 +159,8 @@ void air_write(FILE* air_fp, struct air_hash* air_hash, bool first_time){
         exit(1);
     }
 
+    fseek(air_fp, 0, SEEK_SET);
+
     struct airport* current;
     struct airport* blank = malloc(sizeof(struct airport));
 
@@ -172,6 +176,7 @@ void air_write(FILE* air_fp, struct air_hash* air_hash, bool first_time){
             if(current->changed)
                 fwrite(current, sizeof(*current), 1, air_fp);
 
+            flight_list_destroy(air_hash->flights[i]);
             free(current);
         }
     }

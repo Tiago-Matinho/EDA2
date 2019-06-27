@@ -125,11 +125,12 @@ void flight_list_destroy(struct flight_list* list){
     struct list_node* current = list->header;
     struct list_node* aux = current;
 
-    while(current != NULL){
+    while(current->next != NULL){
         free(aux);
         current = current->next;
         aux = current;
     }
 
+    //free(aux);
     free(list);
 }

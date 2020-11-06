@@ -15,6 +15,7 @@ This program must **support** the following operations:
 - Remove a flight schedule;
 - Calculate the shortest trip.
 
+## Constraints
 All data should be **stored** locally and must be able to store 200000 airports and 750000 flights.<br>
 The program's **memory** use is limited to 64MB (RAM) and 2GB (Disk).<br>
 The program is also limited by **time** and should be able to run all the inputs in under 3 seconds.

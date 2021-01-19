@@ -1,4 +1,4 @@
-# EDA2-Airport
+# Fastest Flight Connection
 
 **Dijkstra's** algorithm implementation using *hashtables* and a *binary heap*.
 
